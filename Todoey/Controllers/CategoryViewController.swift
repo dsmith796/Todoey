@@ -36,6 +36,7 @@ class CategoryViewController: SwipeTableViewController {
             let newCategory = Category()
             newCategory.name = textField.text!
             newCategory.colour = UIColor.init(randomColorIn: [FlatRed(),FlatOrange(),FlatYellow(),FlatSand(),FlatMagenta(),FlatSkyBlue(),FlatGreen(),FlatMint(),FlatWhite(),FlatGray(),FlatPurple(),FlatWatermelon(),FlatLime(),FlatPink(),FlatCoffee(),FlatPowderBlue()])!.hexValue()
+            newCategory.dateAdded = Date()
             self.save(category: newCategory)
             
         }
@@ -112,7 +113,7 @@ class CategoryViewController: SwipeTableViewController {
     
     func loadCategories() {
         
-        categories = realm.objects(Category.self)
+        categories = realm.objects(Category.self).sorted(byKeyPath: "dateAdded", ascending: true)
         
         tableView.reloadData()
 
