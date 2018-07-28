@@ -9,33 +9,39 @@
 import UIKit
 import RealmSwift
 import ChameleonFramework
+import RLBAlertsPickers
 
 class CategoryViewController: SwipeTableViewController {
     
     let realm = try! Realm()
     
     var categories : Results<Category>?
-
+    
+    let colours = ["Red","Orange","Yellow","Sand","Magenta","Sky Blue","Green","Mint","White","Grey","Purple","Watermelon","Lime","Pink","Coffee","Powder Blue"]
+    
+    let uicolours = [FlatRed(),FlatOrange(),FlatYellow(),FlatSand(),FlatMagenta(),FlatSkyBlue(),FlatGreen(),FlatMint(),FlatWhite(),FlatGray(),FlatPurple(),FlatWatermelon(),FlatLime(),FlatPink(),FlatCoffee(),FlatPowderBlue()]
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         loadCategories()
         
         tableView.separatorStyle = .none
+        navigationController?.navigationBar.tintColor = ContrastColorOf((navigationController?.navigationBar.barTintColor)!, returnFlat: true)
         
     }
-
+    
     //MARK: - Add New Categories
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         var textField = UITextField()
+        
+        let newCategory = Category()
         
         let alert = UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add Category", style: .default) { (action) in
             
-            let newCategory = Category()
             newCategory.name = textField.text!
-            newCategory.colour = UIColor.init(randomColorIn: [FlatRed(),FlatOrange(),FlatYellow(),FlatSand(),FlatMagenta(),FlatSkyBlue(),FlatGreen(),FlatMint(),FlatWhite(),FlatGray(),FlatPurple(),FlatWatermelon(),FlatLime(),FlatPink(),FlatCoffee(),FlatPowderBlue()])!.hexValue()
             newCategory.dateAdded = Date()
             self.save(category: newCategory)
             
@@ -49,6 +55,16 @@ class CategoryViewController: SwipeTableViewController {
         alert.addAction(action)
         
         present(alert, animated: true, completion: nil)
+        
+        let pickerViewValues = [colours]
+        let pickerViewSelectedValue : PickerViewViewController.Index = (column : 0, row : colours.index(of: "Red") ?? 0)
+        
+        alert.addPickerView(values: pickerViewValues, initialSelection: pickerViewSelectedValue) { (vc, picker, index, value) in
+            
+            newCategory.colour = self.uicolours[index.row].hexValue()
+            
+        }
+        
     }
     
     //MARK: - TableView Datasource Methods
@@ -66,7 +82,7 @@ class CategoryViewController: SwipeTableViewController {
             
             cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories Added Yet"
             
-            guard let categoryColour = UIColor(hexString: category.colour) else {fatalError()}
+            let categoryColour = UIColor(hexString: category.colour)
             
             cell.backgroundColor = categoryColour
             cell.textLabel?.textColor = ContrastColorOf(categoryColour, returnFlat: true)
@@ -116,7 +132,7 @@ class CategoryViewController: SwipeTableViewController {
         categories = realm.objects(Category.self).sorted(byKeyPath: "dateAdded", ascending: true)
         
         tableView.reloadData()
-
+        
     }
     
     //MARK: - Delete Data From Swipe
@@ -124,7 +140,7 @@ class CategoryViewController: SwipeTableViewController {
     override func updateModel(at indexPath: IndexPath) {
         
         if let categoryForDeletion = self.categories?[indexPath.row] {
-
+            
             do {
                 try self.realm.write {
                     self.realm.delete(categoryForDeletion)
